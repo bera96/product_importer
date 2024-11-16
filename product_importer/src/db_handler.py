@@ -1,10 +1,10 @@
 from pymongo import MongoClient
 from typing import List
-import logging
+from datetime import datetime, timezone
 from .models import Product
+from .logger import Logger
 
-logger = logging.getLogger(__name__)
-
+logger = Logger.get_logger()
 
 class MongoDBHandler:
     def __init__(self, connection_string: str, db_name: str):
@@ -23,19 +23,37 @@ class MongoDBHandler:
 
     def upsert_products(self, products: List[Product]):
         try:
-            logger.info(f"{len(products)} products are being added...")
             for product in products:
-                self.products.update_one(
+                product_data = product.model_dump()
+
+                now = datetime.now(timezone.utc)
+
+                existing_product = self.products.find_one({'stock_code': product.stock_code})
+
+                if existing_product:
+                    product_data['updatedAt'] = now
+                    product_data.pop('createdAt', None)
+                    logger.info(f"Product updating: {product.stock_code}")
+                else:
+                    product_data['createdAt'] = now
+                    product_data['updatedAt'] = now
+                    logger.info(f"New product is being adding: {product.stock_code}")
+
+                result = self.products.update_one(
                     {'stock_code': product.stock_code},
-                    {'$set': product.model_dump()},
+                    {'$set': product_data},
                     upsert=True
                 )
-                logger.debug(f"Product updated/added: {product.stock_code}")
 
-            logger.info("All products have been updated/added successfully!")
+                if result.modified_count:
+                    logger.info(f"Product updated: {product.stock_code}")
+                elif result.upserted_id:
+                    logger.info(f"New product is being added: {product.stock_code}")
+
+            logger.info("All products are successfully added/updated!")
 
         except Exception as e:
-            logger.error(f"Product adding error: {str(e)}")
+            logger.error(f"Product adding/updating error: {str(e)}")
             raise
 
     def close(self):
