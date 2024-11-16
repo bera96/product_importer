@@ -13,8 +13,7 @@ class XMLParser:
     @staticmethod
     def _parse_description(desc_text: str) -> Dict[str, str]:
         result = {
-            'product_info': '',
-            'fabric_info': '',
+            'fabric': '',
             'product_measurements': '',
             'model_measurements': '',
             'size_info': ''
@@ -24,22 +23,19 @@ class XMLParser:
             return result
 
         clean_text = re.sub(r'<[^>]+>', ' ', desc_text)
+        clean_text = re.sub(r'&[a-zA-Z]+;', ' ', clean_text)
 
-        if 'Ürün Bilgisi:' in clean_text:
-            result['product_info'] = re.search(r'Ürün Bilgisi:\s*([^:]+?)(?=\s*(?:Kumaş Bilgisi:|Ürün Ölçüleri:|Model Ölçüleri:|$))', clean_text)
-            result['product_info'] = result['product_info'].group(1).strip() if result['product_info'] else ''
+        patterns = {
+            'fabric': r'Kumaş Bilgisi:?\s*(.*?)(?=Ürün Ölçüleri\d*:|Model Ölçüleri:|$)',
+            'product_measurements': r'Ürün Ölçüleri\d*:?\s*(.*?)(?=Model Ölçüleri:|$)',
+            'model_measurements': r'Model Ölçüleri:?\s*(.*?)(?=Modelin üzerindeki|Bedenler arası|$)',
+        }
 
-        if 'Kumaş Bilgisi:' in clean_text:
-            result['fabric_info'] = re.search(r'Kumaş Bilgisi:\s*([^:]+?)(?=\s*(?:Ürün Ölçüleri:|Model Ölçüleri:|$))', clean_text)
-            result['fabric_info'] = result['fabric_info'].group(1).strip() if result['fabric_info'] else ''
-
-        if 'Ürün Ölçüleri:' in clean_text:
-            result['product_measurements'] = re.search(r'Ürün Ölçüleri:?\s*([^:]+?)(?=\s*(?:Model Ölçüleri:|$))', clean_text)
-            result['product_measurements'] = result['product_measurements'].group(1).strip() if result['product_measurements'] else ''
-
-        if 'Model Ölçüleri:' in clean_text:
-            result['model_measurements'] = re.search(r'Model Ölçüleri:\s*([^:]+?)(?=\s*(?:Modelin üzerindeki|$))', clean_text)
-            result['model_measurements'] = result['model_measurements'].group(1).strip() if result['model_measurements'] else ''
+        for key, pattern in patterns.items():
+            match = re.search(pattern, clean_text, re.DOTALL | re.IGNORECASE)
+            if match:
+                value = re.sub(r'\s+', ' ', match.group(1).strip())
+                result[key] = value
 
         return result
 
@@ -73,7 +69,7 @@ class XMLParser:
                     parsed_desc = XMLParser._parse_description(desc_text)
 
                     raw_data = {
-                        'stock_code': product_id,
+                        'stock_code': product_id + '-' + details.get('Color', ''),
                         'name': name,
                         'color': [details.get('Color', '')],
                         'price': details.get('Price', '0'),
@@ -83,10 +79,9 @@ class XMLParser:
                         'series': details.get('Series', ''),
                         'season': details.get('Season', ''),
                         'images': images,
-                        'fabric': parsed_desc['fabric_info'],
+                        'fabric': parsed_desc['fabric'],
                         'model_measurements': parsed_desc['model_measurements'],
                         'product_measurements': parsed_desc['product_measurements'],
-                        'product_info': parsed_desc['product_info']
                     }
 
                     product_data = DataFormatter.format_product_data(raw_data)
