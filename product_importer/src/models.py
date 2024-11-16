@@ -16,8 +16,8 @@ class Product(BaseModel):
     price_unit: str
     product_type: str
     quantity: int
-    sample_size: str
     series: str
+    season: str
     status: str
     fabric: str
     model_measurements: str
