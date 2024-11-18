@@ -2,13 +2,13 @@ node_modules/
 .DS_Store
 .env
 
-product_importer/**/__pycache__/
-product_importer/*.py[cod]
-product_importer/env/
-product_importer/.venv/
-product_importer/.idea/
-product_importer/.vscode/
-product_importer/.pytest_cache/
+**/__pycache__/
+*.py[cod]
+env/
+.venv/
+.idea/
+.vscode/
+.pytest_cache/
 
 *.log
 *.coverage
