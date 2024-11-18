@@ -2,20 +2,12 @@ node_modules/
 .DS_Store
 .env
 
-python-be/__pycache__/
-python-be/*.py[cod]
-python-be/env/
-python-be/.venv/
-python-be/.idea/
-python-be/.vscode/
-python-be/.pytest_cache/
-
-react-fe/node_modules/
-react-fe/.env
-react-fe/build/
-react-fe/dist/
-react-fe/.next/
-react-fe/.cache/
-react-fe/*.log
+product_importer/__pycache__/
+product_importer/*.py[cod]
+product_importer/env/
+product_importer/.venv/
+product_importer/.idea/
+product_importer/.vscode/
+product_importer/.pytest_cache/
 
 *.log
