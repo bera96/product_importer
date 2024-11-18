@@ -4,7 +4,7 @@ from src.db_handler import MongoDBHandler
 from typing import AsyncGenerator
 from src.api.v1.routes import router as v1_router, executor
 from src.logger import Logger
-
+from src.config import MONGODB_URI, MONGODB_DB
 logger = Logger.get_logger()
 
 
@@ -12,8 +12,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     try:
         logger.info("Application is starting...")
         db_handler = MongoDBHandler(
-            connection_string="connection_string",  # add connection string here later
-            db_name="product_importer"
+            connection_string=MONGODB_URI,
+            db_name=MONGODB_DB
         )
         app.state.db_handler = db_handler
         logger.info("MongoDB connection is ready!")
