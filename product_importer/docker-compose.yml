@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_DB=product_importer
+    volumes:
+      - .:/app
+    depends_on:
+      - mongodb
+    command: >
+      bash -c "
+        pytest --cov=src --cov-report=term-missing --cov-fail-under=75 tests/ &&
+        uvicorn main:app --host 0.0.0.0 --port 8000
+      "
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
